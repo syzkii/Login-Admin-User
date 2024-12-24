@@ -1,23 +1,52 @@
-<?
-	error_reporting(0);
-	session_start();
+<?php
+// Nonaktifkan error reporting untuk produksi
+error_reporting(0);
+session_start();
 
-	if($_SESSION["hak_akses"]<>"admin")
-	{
-		header("location: login.php");
-	}
+// Periksa hak akses
+if ($_SESSION["hak_akses"] !== "admin") {
+    header("Location: index.php");
+    exit();
+}
 
-	//KONEKSI PHP MYSQL
-	$database="sppadminop";
-	$host="localhost";
-	$username="root";
-	$password="";
+// Koneksi ke database menggunakan MySQLi (PHP 8 kompatibel)
+$database = "sppadminop";
+$host = "localhost";
+$username = "root";
+$password = "";
 
-	$conn = mysql_connect ($host,$username,$password) or die ("koneksi gagal");
-	mysql_select_db ($database, $conn);
+// Koneksi menggunakan mysqli
+$conn = new mysqli($host, $username, $password, $database);
 
-	$q_hapus="delete from userkiki where id='".$_GET["id"]."'";
-	$sql_hapus = mysql_query($q_hapus, $conn);
+// Periksa koneksi
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
 
-	header("location: user.php");
+// Mengambil ID yang dikirimkan melalui URL
+$id = $_GET["id"] ?? null;
+
+if ($id) {
+    // Menyiapkan query untuk menghapus data
+    $stmt = $conn->prepare("DELETE FROM userkiki WHERE id = ?");
+    $stmt->bind_param("i", $id); // Mengikat parameter, "i" untuk integer
+
+    if ($stmt->execute()) {
+        // Redirect setelah penghapusan berhasil
+        header("Location: user.php");
+        exit();
+    } else {
+        // Jika gagal menghapus
+        echo "Terjadi kesalahan saat menghapus data.";
+    }
+
+    // Menutup prepared statement
+    $stmt->close();
+} else {
+    // Jika ID tidak ditemukan
+    echo "ID tidak valid.";
+}
+
+// Menutup koneksi
+$conn->close();
 ?>

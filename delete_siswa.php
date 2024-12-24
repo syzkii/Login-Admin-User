@@ -1,10 +1,36 @@
 <?php
-	error_reporting(0);
-  $conn = @mysql_connect("localhost","root","");
-  @mysql_select_db("sppadminop", $conn);
+// Nonaktifkan error reporting untuk produksi
+error_reporting(0);
 
-  $str_hapus = "delete from data_siswa where no_induk='".$_GET["no_induk"]."'";
-  $qry_hapus = @mysql_query ($str_hapus, $conn);
+// Koneksi ke database menggunakan MySQLi
+$host = "localhost";
+$username = "root";
+$password = "";
+$database = "sppadminop";
 
-  header("Location: view_siswa.php"); 
+$conn = new mysqli($host, $username, $password, $database);
+
+// Periksa koneksi
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
+
+// Proses hapus data
+if (isset($_GET["no_induk"])) {
+    $no_induk = $conn->real_escape_string($_GET["no_induk"]);
+
+    $str_hapus = "DELETE FROM data_siswa WHERE no_induk = '$no_induk'";
+    if ($conn->query($str_hapus)) {
+        // Redirect ke halaman view_siswa.php jika berhasil
+        header("Location: view_siswa.php");
+        exit();
+    } else {
+        echo "Error: " . $conn->error;
+    }
+} else {
+    echo "No Induk tidak ditemukan.";
+}
+
+// Tutup koneksi
+$conn->close();
 ?>

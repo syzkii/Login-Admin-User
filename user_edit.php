@@ -1,89 +1,164 @@
-<?
-	error_reporting(0);
-	session_start();
+<?php
+// Nonaktifkan error reporting untuk produksi
+error_reporting(0);
+session_start();
 
-	if($_SESSION["hak_akses"]<>"admin")
-	{
-		header("location: login.php");
-	}
+// Periksa hak akses
+if ($_SESSION["hak_akses"] !== "admin") {
+    header("Location: index.php");
+    exit();
+}
 
-	//KONEKSI PHP MYSQL
-	$database="sppadminop";
-	$host="localhost";
-	$username="root";
-	$password="";
+// Koneksi ke database menggunakan MySQLi
+$database = "sppadminop";
+$host = "localhost";
+$username = "root";
+$password = "";
 
-	$conn = mysql_connect ($host,$username,$password) or die ("koneksi gagal");
-	mysql_select_db ($database, $conn);
+$conn = new mysqli($host, $username, $password, $database);
 
-	if ($_POST["simpan"])
-	{
-		//SIMPAN DATA
-		$username=$_POST["username"];
-		$password=$_POST["password"];
-		$hak_akses=$_POST["hak_akses"];
+// Periksa koneksi
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
 
-		$q_simpan="update userkiki set username='".$username."',password='".$password."',hak_akses='".$hak_akses."' where id='".$_GET["id"]."'";
-		$sql_simpan = mysql_query($q_simpan, $conn);
+// Periksa jika form disubmit
+if (isset($_POST["simpan"])) {
+    $id = $conn->real_escape_string($_GET["id"]);
+    $username = $conn->real_escape_string($_POST["username"]);
+    $password = $conn->real_escape_string($_POST["password"]);
+    $hak_akses = $conn->real_escape_string($_POST["hak_akses"]);
 
-		header("location: user.php");
-	}
+    // Update data
+    $query_update = "UPDATE userkiki SET username = ?, password = ?, hak_akses = ? WHERE id = ?";
+    $stmt = $conn->prepare($query_update);
+    $stmt->bind_param("sssi", $username, $password, $hak_akses, $id);
 
-	$show="select * from user where id='".$_GET["id"]."'";
-	$query=mysql_query($show,$conn);
-	$data=mysql_fetch_array($query);
+    if ($stmt->execute()) {
+        header("Location: user.php");
+        exit();
+    } else {
+        echo "Error: " . $stmt->error;
+    }
+    $stmt->close();
+}
+
+// Ambil data pengguna berdasarkan ID
+if (isset($_GET["id"])) {
+    $id = $conn->real_escape_string($_GET["id"]);
+    $query_select = "SELECT * FROM userkiki WHERE id = ?";
+    $stmt = $conn->prepare($query_select);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = $result->fetch_assoc();
+    $stmt->close();
+} else {
+    header("Location: user.php");
+    exit();
+}
+
+// Tutup koneksi
+$conn->close();
 ?>
 <!doctype html>
 <html lang="en">
- <head>
-  <meta charset="UTF-8">
-  <meta name="Generator" content="EditPlus®">
-  <meta name="Author" content="">
-  <meta name="Keywords" content="">
-  <meta name="Description" content="">
-  <title>Document</title>
-  <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
- </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User</title>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+        }
 
- <body>
- <div class="container">
-<form action="" method="post" class="form-group">
-<div class="row">
-<div class="col-lg-15 col-xl-10 mx-auto">
-<div class="card card-signin flex-row my-5">
-<div class="card-body">
- <form method="post" action="user_edit.php?id=<?php echo $data["id"];?>">
-  <table>
-  <tr>
-	<td>Username</td>
-	<td>:</td>
-	<td><input type="text" class="form-control mb-2" name="username" size='30' value='<?php echo $data["username"];?>'></td>
-  </tr>
-  <tr>
-	<td>Password</td>
-	<td>:</td>
-	<td><input type="text" class="form-control mb-2" name="password" size='30' value='<?php echo $data["password"];?>'></td>
-  </tr>
-  <tr>
-	<td>Hak Akses</td>
-	<td>:</td>
-	<td>
-		<select class="form-control mb-2" name='hak_akses'>
-			<option value=''>PILIH</option>
-			<option value='admin' <?
-			if($data["hak_akses"]=="admin"){ echo "selected"; }
-			?>>Admin</option>
-			<option value='operator'<?
-			if($data["hak_akses"]=="operator"){ echo "selected"; }
-			?>>Operator</option>
-		</select>
-	</td>
-  </tr>
-  <tr>
-	<td colspan='3'><input type="submit" class="btn btn-success mt-4" name='simpan' value='Simpan'>
-	<a href="user.php" class="btn btn-danger mt-4">Kembali</a></td>
-  </tr>
-  </table>	
- </form>
- </body>
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary, .btn-danger {
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-weight: bold;
+        }
+
+        .form-control {
+            border-radius: 8px;
+        }
+
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 20px;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header text-center">
+        <h1>Edit User</h1>
+    </div>
+
+    <div class="container">
+        <form method="post">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <form method="post" action="user_edit.php?id=<?php echo $data['id']; ?>">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" id="username" class="form-control" name="username"
+                                           value="<?php echo htmlspecialchars($data['username']); ?>" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input type="password" id="password" class="form-control" name="password"
+                                           value="<?php echo htmlspecialchars($data['password']); ?>" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="hak_akses" class="form-label">Hak Akses</label>
+                                    <select id="hak_akses" class="form-control" name="hak_akses" required>
+                                        <option value="">PILIH</option>
+                                        <option value="admin" <?php echo ($data['hak_akses'] === "admin" ? "selected" : ""); ?>>
+                                            Admin
+                                        </option>
+                                        <option value="operator" <?php echo ($data['hak_akses'] === "operator" ? "selected" : ""); ?>>
+                                            Operator
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <button type="submit" name="simpan" class="btn btn-primary">Simpan</button>
+                                    <a href="user.php" class="btn btn-danger">Kembali</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

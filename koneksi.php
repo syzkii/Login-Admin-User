@@ -1,12 +1,13 @@
-<?php 
-	$host = "localhost";
-	$user = "root";
-	$pass = "";
-	$db = "sppadminop";
+<?php
+$database = "sppadminop";
+$host = "localhost";
+$username = "root";
+$password = "";
 
-	$koneksi = mysqli_connect($host, $user, $pass, $db);
+$conn = new mysqli($host, $username, $password, $database);
 
-	if(!$koneksi) {
-		die("Koneksi gagal : ".mysqli_connect_error());
-	}
+// Cek koneksi
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
 ?>

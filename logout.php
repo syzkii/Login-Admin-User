@@ -1,10 +1,14 @@
 <?php 
-// mengaktifkan session
+// Mengaktifkan session
 session_start();
- 
-// menghapus semua session
+
+// Menghapus semua variabel sesi
+$_SESSION = array();
+
+// Menghapus sesi
 session_destroy();
- 
-// mengalihkan halaman login
-header("location:login.php?pesan=Anda berhasil logout.");
+
+// Redirect ke halaman login dengan pesan
+header("Location: index.php?pesan=logout berhasil :)");
+exit;
 ?>

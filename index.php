@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Form</title>
     <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="login.css">
@@ -10,6 +11,75 @@
   border-right: 2px solid #EEEEEE;
   margin-top: 40px;
   height: 400px;
+  }
+    /* Umum untuk semua perangkat */
+  body, html {
+    height: 100%;
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Responsif untuk perangkat Android */
+  @media only screen and (max-width: 768px) {
+    .container-fluid {
+      padding: 0;
+      margin: 0;
+    }
+
+    .bg-image {
+      display: none; /* Sembunyikan gambar di layar kecil */
+    }
+
+    .login-heading {
+      font-size: 24px; /* Ukuran teks lebih kecil untuk layar kecil */
+      text-align: center;
+    }
+
+    .form-label-group {
+      margin-bottom: 20px;
+    }
+
+    input.form-control {
+      font-size: 16px; /* Pastikan input cukup besar untuk layar sentuh */
+      padding: 10px;
+    }
+
+    .btn-login {
+      font-size: 18px;
+      padding: 10px 15px;
+    }
+
+    label[style="color:red;"] {
+      font-size: 14px; /* Pesan error lebih kecil */
+      text-align: center;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .border-line {
+      border: none; /* Hilangkan garis untuk layar kecil */
+    }
+
+    .login {
+      padding: 20px;
+      align-items: center;
+    }
+}
+
+/* Optimalisasi untuk layar yang lebih besar */
+@media only screen and (min-width: 769px) {
+  .bg-image {
+    background: url('img/bgopsi.png') no-repeat center center;
+    background-size: cover;
+  }
+
+  .login-heading {
+    font-size: 32px;
+  }
+}
+
 }
 </style>
 </head>

@@ -1,31 +1,56 @@
-<?
-	error_reporting(0);
-	session_start();
+<?php
+session_start();
+error_reporting(0);
 
-	//KONEKSI PHP MYSQL
-	$database="sppadminop";
-	$host="localhost";
-	$username="root";
-	$password="";
+// Koneksi ke database (gunakan file koneksi eksternal jika memungkinkan)
+$database = "sppadminop";
+$host = "localhost";
+$username = "root";
+$password = "";
 
-	$conn = mysql_connect ($host,$username,$password) or die ("koneksi gagal");
-	mysql_select_db ($database, $conn);
-	
-	$username=$_POST["username"];
-	$password=$_POST["password"];
+// Membuat koneksi
+$conn = new mysqli($host, $username, $password, $database);
 
-	$q_user="select * from userkiki where username='".$username."' and password='".$password."'";
-	$cek_user=mysql_query($q_user,$conn);
-	$total_user=mysql_num_rows($cek_user);
+// Cek koneksi
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
 
-	if($total_user>0)
-	{
-		$user=mysql_fetch_array($cek_user);
+// Ambil data dari form login
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = $_POST["username"];
+    $password = $_POST["password"];
 
-		$_SESSION["hak_akses"]=$user["hak_akses"];
-		header("location: view_siswa.php");
-	}
-	else{
-		header("location:login.php?pesan=Gagal! DATA TIDAK DITEMUKAN.");
-	}
+    // Validasi input
+    if (!empty($username) && !empty($password)) {
+        // Gunakan prepared statement untuk mencegah SQL Injection
+        $stmt = $conn->prepare("SELECT * FROM userkiki WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+
+            // Verifikasi password (gunakan hash jika disimpan dengan password_hash)
+            if ($password === $user["password"]) { // Gunakan password_verify untuk hash
+                $_SESSION["hak_akses"] = $user["hak_akses"];
+                header("Location: view_siswa.php");
+                exit();
+            } else {
+                header("Location: login.php?pesan=Password salah.");
+                exit();
+            }
+        } else {
+            header("Location: login.php?pesan=Username tidak ditemukan.");
+            exit();
+        }
+    } else {
+        header("Location: login.php?pesan=Harap isi semua field.");
+        exit();
+    }
+} else {
+    header("Location: login.php");
+    exit();
+}
 ?>
